@@ -13,6 +13,6 @@ fn main() {
         stdin.read_line(&mut input).unwrap();
         input.pop();
 
-        println!("{}: command not found", input.trim());
+        println!("{}: command not found", input);
     }
 }
