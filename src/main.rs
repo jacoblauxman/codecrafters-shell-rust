@@ -9,9 +9,11 @@ fn main() {
         io::stdout().flush().unwrap();
 
         // Wait for user input
-        stdin.read_line(&mut input).unwrap();
-        // input.pop();
+        let _ = stdin.read_line(&mut input).unwrap();
 
-        println!("{}: command not found", input.trim());
+        match input.trim() {
+            "exit 0" => std::process::exit(0),
+            _ => println!("{}: command not found", input.trim()),
+        };
     }
 }
