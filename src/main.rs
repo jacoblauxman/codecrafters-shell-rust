@@ -24,8 +24,15 @@ fn main() {
                 print!("{}\n", std::env::current_dir().unwrap().to_str().unwrap())
             }
             Some(ShellCommand::Cd(path)) => {
-                if std::env::set_current_dir(path).is_err() {
-                    print!("cd: {}: No such file or directory\n", path);
+                if path == "~" {
+                    let home_path = std::env::var("HOME").expect("Failed get `HOME` env key");
+
+                    std::env::set_current_dir(home_path)
+                        .expect("Failed to set path to environment var `HOME`'s directory");
+                } else {
+                    if std::env::set_current_dir(path).is_err() {
+                        print!("cd: {}: No such file or directory\n", path);
+                    }
                 }
             }
             Some(ShellCommand::Program((cmd, args))) => {
