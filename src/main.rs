@@ -16,7 +16,7 @@ fn main() {
 
         match parse_command(&input) {
             Some(ShellCommand::Exit(n)) => std::process::exit(n),
-            Some(ShellCommand::Echo(echo)) => print!("{echo}"),
+            Some(ShellCommand::Echo(echo)) => print!("{echo}\n"),
             Some(ShellCommand::Type(cmd)) => command_type(cmd),
             _ => print!("{}: command not found\n", input.trim()),
         };
@@ -30,9 +30,9 @@ fn parse_command(input: &str) -> Option<ShellCommand> {
     };
 
     match cmd {
-        "exit" => Some(ShellCommand::Exit(args.trim().parse::<i32>().unwrap())),
-        "echo" => Some(ShellCommand::Echo(args)),
-        "type" => Some(ShellCommand::Type(args)),
+        "exit" => Some(ShellCommand::Exit(args.trim().parse::<i32>().unwrap_or(0))),
+        "echo" => Some(ShellCommand::Echo(args.trim())),
+        "type" => Some(ShellCommand::Type(args.trim())),
         _ => None,
     }
 }
@@ -59,7 +59,7 @@ fn command_type(cmd: &str) {
     };
 
     match cmd_type {
-        CommandType::BuiltIn => print!("{} is a shell builtin", cmd),
-        CommandType::Unrecognized => print!("{} not found", cmd),
+        CommandType::BuiltIn => print!("{} is a shell builtin\n", cmd),
+        CommandType::Unrecognized => print!("{} not found\n", cmd),
     };
 }
