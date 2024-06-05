@@ -20,6 +20,9 @@ fn main() {
             Some(ShellCommand::Exit(n)) => std::process::exit(n),
             Some(ShellCommand::Echo(echo)) => print!("{echo}\n"),
             Some(ShellCommand::Type(cmd)) => get_command_type(cmd, &env_path),
+            Some(ShellCommand::Pwd) => {
+                print!("{}\n", std::env::current_dir().unwrap().to_str().unwrap())
+            }
             Some(ShellCommand::Program((cmd, args))) => {
                 if let Some(ShellCommand::Program((cmd, path))) = is_executable(cmd, &env_path) {
                     let full_path = format!("{}/{}", path, cmd);
@@ -43,13 +46,14 @@ fn main() {
 fn parse_command(input: &str) -> Option<ShellCommand> {
     let (cmd, args) = match input.split_once(' ') {
         Some((cmd, args)) => (cmd, args),
-        None => (input, ""),
+        None => (input.trim(), ""),
     };
 
     match cmd {
         "exit" => Some(ShellCommand::Exit(args.trim().parse::<i32>().unwrap_or(0))),
         "echo" => Some(ShellCommand::Echo(args.trim())),
         "type" => Some(ShellCommand::Type(args.trim())),
+        "pwd" => Some(ShellCommand::Pwd),
         _ => Some(ShellCommand::Program((cmd, args.trim()))),
     }
 }
@@ -60,6 +64,7 @@ pub enum ShellCommand<'a> {
     Echo(&'a str),
     Type(&'a str),
     Program((&'a str, &'a str)),
+    Pwd,
 }
 
 #[derive(Debug, Clone)]
@@ -74,6 +79,7 @@ fn get_command_type<'a>(cmd: &'a str, env_path: &'a str) {
         Some(ShellCommand::Echo(_)) => CommandType::BuiltIn,
         Some(ShellCommand::Exit(_)) => CommandType::BuiltIn,
         Some(ShellCommand::Type(_)) => CommandType::BuiltIn,
+        Some(ShellCommand::Pwd) => CommandType::BuiltIn,
         Some(ShellCommand::Program((cmd, _))) => {
             if let Some(ShellCommand::Program((cmd, full_path))) = is_executable(cmd, env_path) {
                 CommandType::Executable((cmd, full_path))
