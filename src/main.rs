@@ -23,6 +23,11 @@ fn main() {
             Some(ShellCommand::Pwd) => {
                 print!("{}\n", std::env::current_dir().unwrap().to_str().unwrap())
             }
+            Some(ShellCommand::Cd(path)) => {
+                if std::env::set_current_dir(path).is_err() {
+                    print!("cd: {}: No such file or directory\n", path);
+                }
+            }
             Some(ShellCommand::Program((cmd, args))) => {
                 if let Some(ShellCommand::Program((cmd, path))) = is_executable(cmd, &env_path) {
                     let full_path = format!("{}/{}", path, cmd);
@@ -54,6 +59,7 @@ fn parse_command(input: &str) -> Option<ShellCommand> {
         "echo" => Some(ShellCommand::Echo(args.trim())),
         "type" => Some(ShellCommand::Type(args.trim())),
         "pwd" => Some(ShellCommand::Pwd),
+        "cd" => Some(ShellCommand::Cd(args.trim())),
         _ => Some(ShellCommand::Program((cmd, args.trim()))),
     }
 }
@@ -65,6 +71,7 @@ pub enum ShellCommand<'a> {
     Type(&'a str),
     Program((&'a str, &'a str)),
     Pwd,
+    Cd(&'a str),
 }
 
 #[derive(Debug, Clone)]
@@ -80,6 +87,7 @@ fn get_command_type<'a>(cmd: &'a str, env_path: &'a str) {
         Some(ShellCommand::Exit(_)) => CommandType::BuiltIn,
         Some(ShellCommand::Type(_)) => CommandType::BuiltIn,
         Some(ShellCommand::Pwd) => CommandType::BuiltIn,
+        Some(ShellCommand::Cd(_)) => CommandType::BuiltIn,
         Some(ShellCommand::Program((cmd, _))) => {
             if let Some(ShellCommand::Program((cmd, full_path))) = is_executable(cmd, env_path) {
                 CommandType::Executable((cmd, full_path))
