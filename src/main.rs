@@ -21,18 +21,18 @@ fn main() {
             Some(ShellCommand::Echo(echo)) => print!("{echo}\n"),
             Some(ShellCommand::Type(cmd)) => get_command_type(cmd, &env_path),
             Some(ShellCommand::Program((cmd, args))) => {
-                let cmd = is_executable(cmd, &env_path);
+                if let Some(ShellCommand::Program((cmd, path))) = is_executable(cmd, &env_path) {
+                    let full_path = format!("{}/{}", path, cmd);
+                    let args = args.split_whitespace().collect::<Vec<&str>>();
 
-                match cmd {
-                    Some(_) => {
-                        let _ = std::process::Command::new(&env_path)
-                            .args(args.split(' '))
-                            .output()
-                            .expect("Failed to run executable program");
-                    }
-                    None => {
-                        print!("{}: command not found", &input)
-                    }
+                    let output = std::process::Command::new(&full_path)
+                        .args(args)
+                        .output()
+                        .expect("Failed to run executable program");
+
+                    print!("{}", String::from_utf8_lossy(&output.stdout));
+                } else {
+                    print!("{}: command not found\n", cmd.trim());
                 }
             }
             _ => print!("{}: command not found\n", input.trim()),
@@ -56,7 +56,7 @@ fn parse_command(input: &str) -> Option<ShellCommand> {
 
 #[derive(Debug, Clone, Copy)]
 pub enum ShellCommand<'a> {
-    Exit(i32), // process::exit expects an i32 value
+    Exit(i32),
     Echo(&'a str),
     Type(&'a str),
     Program((&'a str, &'a str)),
