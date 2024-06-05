@@ -20,6 +20,21 @@ fn main() {
             Some(ShellCommand::Exit(n)) => std::process::exit(n),
             Some(ShellCommand::Echo(echo)) => print!("{echo}\n"),
             Some(ShellCommand::Type(cmd)) => get_command_type(cmd, &env_path),
+            Some(ShellCommand::Program((cmd, args))) => {
+                let cmd = is_executable(cmd, &env_path);
+
+                match cmd {
+                    Some(_) => {
+                        let _ = std::process::Command::new(&env_path)
+                            .args(args.split(' '))
+                            .output()
+                            .expect("Failed to run executable program");
+                    }
+                    None => {
+                        print!("{}: command not found", &input)
+                    }
+                }
+            }
             _ => print!("{}: command not found\n", input.trim()),
         };
     }
